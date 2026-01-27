@@ -12,6 +12,8 @@ void main(List<String> args) {
     ..addOption("pom",help: "path=<pom.xml> Update pom.xml <version> tag")
     ..addOption("verfile",help: "path=<version.json> Version file to look at")
     ..addFlag("clean",help: "Remove JSON and generated files",negatable: false)
+    ..addFlag("show",abbr:'s', help: "Just show the formatted version, don't generate or change anything",negatable: false)
+    ..addFlag("verbose",abbr:'v', help: "Output generation information",negatable: false)
     ..addFlag("help",abbr:"h",help: "Usage help.",negatable: false);
   // --lang=dart|java|cpp   Output language (default: dart)
   // --out=<path>           Output file path
@@ -27,7 +29,7 @@ void main(List<String> args) {
 
   final versionFile = File('version.json');
   final buildFile = File('version-build.json');
-
+  final verbose = flags['verbose'];
   final lang = flags['lang'] ?? 'dart';
   final outputPath = flags['out'] ?? _defaultOutputPath(lang);
   String? package = flags['package'];
@@ -41,18 +43,17 @@ void main(List<String> args) {
   }
 
   if (!versionFile.existsSync()) {
-    stderr.writeln('Creating $versionFile');
+    if(verbose) stdout.writeln('Creating $versionFile');
     createVersionFile(versionFile,0,1,0);
   }
   if(!buildFile.existsSync()) {
-    stderr.writeln('Creating $buildFile');
+    if(verbose) stdout.writeln('Creating $buildFile');
     createBuildFile(buildFile,1);
   }
 
-  final versionData =
-  jsonDecode(versionFile.readAsStringSync()) as Map<String, dynamic>;
-  final buildData =
-  jsonDecode(buildFile.readAsStringSync()) as Map<String, dynamic>;
+
+  final versionData = jsonDecode(versionFile.readAsStringSync()) as Map<String, dynamic>;
+  final buildData = jsonDecode(buildFile.readAsStringSync()) as Map<String, dynamic>;
 
   final int version = versionData['version'];
   final int revision = versionData['revision'];
@@ -64,14 +65,20 @@ void main(List<String> args) {
   final formattedPatch = patch.toString().padLeft(2,"0");
   final versionString = '$version.$formattedRevision.$formattedPatch.$formattedBuild';
 
+  if(flags['show']) {
+    print(versionString);
+    exit(0);
+  }
+
   outputFile.createSync(recursive: true);
   outputFile.writeAsStringSync(_generate(lang, versionString, version, revision, patch, build, package));
 
-  print('Generated $outputPath');
-  print('VERSION=$versionString');
+
+  if(verbose) print('Generated $outputPath');
 
   if (pomPath != null) {
     _updatePomVersion(File(pomPath), versionString);
+    if(verbose) print('Updated ${pomPath} <version> to $versionString');
   }
 
   // Increment build
@@ -80,7 +87,8 @@ void main(List<String> args) {
     const JsonEncoder.withIndent('  ').convert(buildData),
   );
 
-  print('Incremented build to ${build + 1}');
+  if(verbose) print('Incremented build to ${build + 1}');
+  print(versionString);
 }
 
 void _usage(String parserUsage) {
@@ -141,7 +149,6 @@ void _updatePomVersion(File pomFile, String versionString) {
 
   versionElements.first.innerText = versionString;
   pomFile.writeAsStringSync(document.toXmlString(pretty: true));
-  print('Updated ${pomFile.path} <version> to $versionString');
 }
 
 String _generate(String lang, String versionString, int version, int revision, int patch,int build,String? package) {
