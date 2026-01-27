@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:xml/xml.dart';
 
 void main(List<String> args) {
   ArgParser parser = ArgParser()
     ..addOption("lang",help:"lang=dart|java|cpp Output language (default: dart)")
     ..addOption("package",help: "package=<com.axorion> Package for java file")
     ..addOption("out",help: "out=<path> Output file path")
+    ..addOption("pom",help: "path=<pom.xml> Update pom.xml <version> tag")
     ..addOption("verfile",help: "path=<version.json> Version file to look at")
     ..addFlag("clean",help: "Remove JSON and generated files",negatable: false)
     ..addFlag("help",abbr:"h",help: "Usage help.",negatable: false);
@@ -29,6 +31,7 @@ void main(List<String> args) {
   final lang = flags['lang'] ?? 'dart';
   final outputPath = flags['out'] ?? _defaultOutputPath(lang);
   String? package = flags['package'];
+  final pomPath = flags['pom'];
 
   final outputFile = File(outputPath);
 
@@ -66,6 +69,10 @@ void main(List<String> args) {
 
   print('Generated $outputPath');
   print('VERSION=$versionString');
+
+  if (pomPath != null) {
+    _updatePomVersion(File(pomPath), versionString);
+  }
 
   // Increment build
   buildData['build'] = build + 1;
@@ -110,6 +117,31 @@ void _clean(File version, File build, File output) {
   deleteIfExists(version);
   deleteIfExists(build);
   deleteIfExists(output);
+}
+
+void _updatePomVersion(File pomFile, String versionString) {
+  if (!pomFile.existsSync()) {
+    stderr.writeln('Pom file not found: ${pomFile.path}');
+    exit(2);
+  }
+
+  final contents = pomFile.readAsStringSync();
+  final document = XmlDocument.parse(contents);
+  final project = document.rootElement;
+  if (project.name.local != 'project') {
+    stderr.writeln('Root element is not <project> in ${pomFile.path}');
+    exit(2);
+  }
+
+  final versionElements = project.findElements('version');
+  if (versionElements.isEmpty) {
+    stderr.writeln('No <project><version> tag found in ${pomFile.path}');
+    exit(2);
+  }
+
+  versionElements.first.innerText = versionString;
+  pomFile.writeAsStringSync(document.toXmlString(pretty: true));
+  print('Updated ${pomFile.path} <version> to $versionString');
 }
 
 String _generate(String lang, String versionString, int version, int revision, int patch,int build,String? package) {
@@ -167,4 +199,3 @@ String _defaultOutputPath(String lang) {
       return 'version.txt';
   }
 }
-
