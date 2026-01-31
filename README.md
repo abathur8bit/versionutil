@@ -1,9 +1,17 @@
-A sample command-line application with an entrypoint in `bin/`, library code
-in `lib/`, and example unit test in `test/`.
+Command line application that produces version files based on version json and build. Every time you run `versionutil` it will update the build number in `version-build.json` and output to the version file of your choice, and optionally update a pom.xml file. 
 
 
-- Use ArgParser instead
-- Need to be able to set a package name for java
+
+version.json:
+```
+{"version":0,"revision":1,"patch":0}
+```
+
+version-build.json:
+```
+{"build":2}
+```
+
 - Modify pom.xml file version tag
 - revision # should be padded to "00"
 - Support major.minor.patch.build

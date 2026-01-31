@@ -55,11 +55,16 @@ void main(List<String> args) {
   final versionData = jsonDecode(versionFile.readAsStringSync()) as Map<String, dynamic>;
   final buildData = jsonDecode(buildFile.readAsStringSync()) as Map<String, dynamic>;
 
+  // read the current version info
   final int version = versionData['version'];
   final int revision = versionData['revision'];
   final int patch = versionData['patch'];
-  final int build = buildData['build'];
+  int build = buildData['build'];
 
+  // inc the build number
+  if(!flags['show']) build = incBuild(buildData, buildFile, verbose);
+
+  //format and output the build info
   final formattedBuild = build.toString().padLeft(4, '0');
   final formattedRevision = revision.toString().padLeft(2,"0");
   final formattedPatch = patch.toString().padLeft(2,"0");
@@ -73,7 +78,6 @@ void main(List<String> args) {
   outputFile.createSync(recursive: true);
   outputFile.writeAsStringSync(_generate(lang, versionString, version, revision, patch, build, package));
 
-
   if(verbose) print('Generated $outputPath');
 
   if (pomPath != null) {
@@ -81,14 +85,19 @@ void main(List<String> args) {
     if(verbose) print('Updated ${pomPath} <version> to $versionString');
   }
 
+  print(versionString);
+}
+
+int incBuild(Map<String, dynamic> buildData,File buildFile,bool verbose) {
   // Increment build
-  buildData['build'] = build + 1;
+  buildData['build']++;
   buildFile.writeAsStringSync(
     const JsonEncoder.withIndent('  ').convert(buildData),
   );
 
-  if(verbose) print('Incremented build to ${build + 1}');
-  print(versionString);
+  if(verbose) print('Incremented build to ${buildData['build'] + 1}');
+
+  return buildData['build'];
 }
 
 void _usage(String parserUsage) {
