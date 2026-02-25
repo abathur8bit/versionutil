@@ -1,0 +1,45 @@
+{
+  "name": "VersionUtil",
+  "steps": [
+    {
+      "name": "inc-version",
+      "type": {
+        "type": "version",
+        "command": "versionutil",
+        "params": [
+          "--in=real", "--out=lib\\versionutil_version.dart"
+        ]
+      }
+    },
+    {
+      "name": "get-version",
+      "type": {
+        "type": "version",
+        "command": "versionutil",
+        "params": [
+          "-s"
+        ]
+      }
+    },
+    {
+      "name": "build",
+      "type": {
+        "type": "execute",
+        "command": "dart",
+        "params": [
+          "compile","exe","bin/versionutil.dart","-o","versionutil.exe"
+        ]
+      }
+    },
+    {
+      "name": "deploy",
+      "type": {
+        "type": "execute",
+        "command": "copy",
+        "params": [
+          "/Y","versionutil.exe","\\util\\lee"
+        ]
+      }
+    }
+  ]
+}

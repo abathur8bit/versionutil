@@ -4,13 +4,16 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:xml/xml.dart';
 
+import 'package:versionutil/versionutil_version.dart';
+
 void main(List<String> args) {
   ArgParser parser = ArgParser()
     ..addOption("lang",help:"lang=dart|java|cpp Output language (default: dart)")
     ..addOption("package",help: "package=<com.axorion> Package for java file")
     ..addOption("out",help: "out=<path> Output file path")
-    ..addOption("pom",help: "path=<pom.xml> Update pom.xml <version> tag")
-    ..addOption("verfile",help: "path=<version.json> Version file to look at")
+    ..addOption("pom",help: "pom=<pom.xml> Update pom.xml <version> tag")
+    ..addOption("in",help: "in=<version> Version file <in>.json and <in>-build.json to look at. Defaults to 'version'")
+    ..addFlag("prerelease",help: "Include preRelease info in version-build.json")
     ..addFlag("clean",help: "Remove JSON and generated files",negatable: false)
     ..addFlag("show",abbr:'s', help: "Just show the formatted version, don't generate or change anything",negatable: false)
     ..addFlag("verbose",abbr:'v', help: "Output generation information",negatable: false)
@@ -27,10 +30,12 @@ void main(List<String> args) {
     return;
   }
 
-  final versionFile = File('version.json');
-  final buildFile = File('version-build.json');
+  final versionFilename = flags['in'] ?? 'version';
+  final versionFile = File('${versionFilename}.json');
+  final buildFile = File('${versionFilename}-build.json');
   final verbose = flags['verbose'];
   final lang = flags['lang'] ?? 'dart';
+  final preRelease = flags['prerelease'];
   final outputPath = flags['out'] ?? _defaultOutputPath(lang);
   String? package = flags['package'];
   final pomPath = flags['pom'];
@@ -48,7 +53,7 @@ void main(List<String> args) {
   }
   if(!buildFile.existsSync()) {
     if(verbose) stdout.writeln('Creating $buildFile');
-    createBuildFile(buildFile,1);
+    createBuildFile(buildFile,0,preRelease);
   }
 
 
@@ -59,6 +64,8 @@ void main(List<String> args) {
   final int version = versionData['version'];
   final int revision = versionData['revision'];
   final int patch = versionData['patch'];
+  int? prenum = buildData['preRelease'] != null ? buildData['preRelease']['num']:null;
+  String? pretag = buildData['preRelease'] != null ? buildData['preRelease']['tag']:null;
   int build = buildData['build'];
 
   // inc the build number
@@ -68,7 +75,9 @@ void main(List<String> args) {
   final formattedBuild = build.toString().padLeft(4, '0');
   final formattedRevision = revision.toString().padLeft(2,"0");
   final formattedPatch = patch.toString().padLeft(2,"0");
-  final versionString = '$version.$formattedRevision.$formattedPatch.$formattedBuild';
+  final versionString = prenum != null && pretag != null
+      ? '$version.$formattedRevision.$formattedPatch-$pretag.$prenum+$formattedBuild'
+      : '$version.$formattedRevision.$formattedPatch+$formattedBuild';
 
   if(flags['show']) {
     print(versionString);
@@ -102,7 +111,7 @@ int incBuild(Map<String, dynamic> buildData,File buildFile,bool verbose) {
 
 void _usage(String parserUsage) {
   print('''
-Version generator
+Version generator v$appVersion
 
 Usage:
   dart run tool/version_gen.dart [options]
@@ -117,8 +126,11 @@ void createVersionFile(File versionFile, int version, int revision, int patch) {
   versionFile.writeAsStringSync(jsonEncode(versionData).toString());
 }
 
-void createBuildFile(File buildFile, int build) {
+void createBuildFile(File buildFile, int build, bool preRelease) {
   Map<String, dynamic> versionData = {"build": build};
+  if(preRelease) {
+    versionData["preRelease"] = {"tag":"alpha","num":1};
+  }
   buildFile.writeAsStringSync(jsonEncode(versionData).toString());
 }
 
