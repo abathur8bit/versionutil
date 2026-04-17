@@ -40,6 +40,22 @@
           "/Y","versionutil.exe","\\util\\lee"
         ]
       }
+    },
+    {
+      "name": "tag",
+      "type": {
+        "type": "execute",
+        "command": "git",
+        "params": ["tag","-a","v{{version}}","-m","Release v{{version}}"]
+      }
+    },
+    {
+      "name": "push-tag",
+      "type": {
+        "type": "execute",
+        "command": "git",
+        "params": ["push", "-f", "origin", "v{{version}}"]
+      }
     }
   ]
 }
