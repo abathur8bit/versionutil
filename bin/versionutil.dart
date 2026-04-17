@@ -41,10 +41,8 @@ void main(List<String> args) {
   final lang = flags['lang'] ?? 'dart';
   final preRelease = flags['prerelease'];
   final outputPath = flags['out'] ?? _defaultOutputPath(lang);
-  final strictFlag = flags['strict'];
   String? package = flags['package'];
   final pomPath = flags['pom'];
-  final buildNumberFlag = flags['build'];
 
   final outputFile = File(outputPath);
 
