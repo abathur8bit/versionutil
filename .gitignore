@@ -2,3 +2,9 @@
 # Created by `dart pub`
 .dart_tool/
 /pubspec.lock
+*.exe
+/versionutil
+/.idea/
+/version.json
+/version-build.json
+/lib/version.dart
