@@ -6,6 +6,13 @@ import 'package:xml/xml.dart';
 
 import 'package:versionutil/versionutil_version.dart';
 
+bool get isCompiledExecutable {
+  final exe = Platform.resolvedExecutable.toLowerCase();
+  return !exe.endsWith('dart') && !exe.endsWith('dart.exe');
+}
+bool get isRunningFromDartRun => !isCompiledExecutable;
+String executable = 'versionutil';  //default to an executable
+
 void main(List<String> args) {
   ArgParser parser = ArgParser()
     ..addOption("lang",help:"lang=dart|java|cpp Output language (default: dart)")
@@ -13,20 +20,17 @@ void main(List<String> args) {
     ..addOption("out",help: "out=<path> Output file path")
     ..addOption("pom",help: "pom=<pom.xml> Update pom.xml <version> tag")
     ..addOption("in",help: "in=<version> Version file <in>.json and <in>-build.json to look at. Defaults to 'version'")
+    ..addFlag("build",help: "Include the build number in the version output", defaultsTo: true)
     ..addFlag("prerelease",help: "Include preRelease info in version-build.json")
     ..addFlag("clean",help: "Remove JSON and generated files",negatable: false)
     ..addFlag("show",abbr:'s', help: "Just show the formatted version, don't generate or change anything",negatable: false)
     ..addFlag("verbose",abbr:'v', help: "Output generation information",negatable: false)
+    ..addFlag("strict",help:"Strict SemVer format, 1.0.0 instead of 1.00.00")
     ..addFlag("help",abbr:"h",help: "Usage help.",negatable: false);
-  // --lang=dart|java|cpp   Output language (default: dart)
-  // --out=<path>           Output file path
-  // --verfile=<path>       Version file to look at
-  // --clean                Remove JSON and generated files
-  // --help                 Show this help
 
   final flags = parser.parse(args);
   if(flags.wasParsed("help")) {
-    _usage(parser.usage);
+    _printUsage(parser);
     return;
   }
 
@@ -37,8 +41,10 @@ void main(List<String> args) {
   final lang = flags['lang'] ?? 'dart';
   final preRelease = flags['prerelease'];
   final outputPath = flags['out'] ?? _defaultOutputPath(lang);
+  final strictFlag = flags['strict'];
   String? package = flags['package'];
   final pomPath = flags['pom'];
+  final buildNumberFlag = flags['build'];
 
   final outputFile = File(outputPath);
 
@@ -56,11 +62,10 @@ void main(List<String> args) {
     createBuildFile(buildFile,0,preRelease);
   }
 
-
   final versionData = jsonDecode(versionFile.readAsStringSync()) as Map<String, dynamic>;
   final buildData = jsonDecode(buildFile.readAsStringSync()) as Map<String, dynamic>;
-
-  // read the current version info
+  final strict = (flags.wasParsed("strict") ? flags['strict'] : null) ?? versionData['strict'] ?? false;
+  final buildNumber = (flags.wasParsed("build") ? flags['build'] : null) ?? versionData['build'] ?? true;
   final int version = versionData['version'];
   final int revision = versionData['revision'];
   final int patch = versionData['patch'];
@@ -72,12 +77,12 @@ void main(List<String> args) {
   if(!flags['show']) build = incBuild(buildData, buildFile, verbose);
 
   //format and output the build info
-  final formattedBuild = build.toString().padLeft(4, '0');
-  final formattedRevision = revision.toString().padLeft(2,"0");
-  final formattedPatch = patch.toString().padLeft(2,"0");
+  final formattedBuild = strict ? build.toString() : build.toString().padLeft(4, '0');
+  final formattedRevision = strict ? revision.toString() : revision.toString().padLeft(2,"0");
+  final formattedPatch = strict ? patch.toString() : patch.toString().padLeft(2,"0");
   final versionString = prenum != null && pretag != null
       ? '$version.$formattedRevision.$formattedPatch-$pretag.$prenum+$formattedBuild'
-      : '$version.$formattedRevision.$formattedPatch+$formattedBuild';
+      : '$version.$formattedRevision.$formattedPatch${buildNumber ? '+$formattedBuild' : ''}';
 
   if(flags['show']) {
     print(versionString);
@@ -109,16 +114,20 @@ int incBuild(Map<String, dynamic> buildData,File buildFile,bool verbose) {
   return buildData['build'];
 }
 
-void _usage(String parserUsage) {
-  print('''
-Version generator v$appVersion
-
-Usage:
-  dart run tool/version_gen.dart [options]
-
-Options:
-$parserUsage
-''');
+void _printUsage(ArgParser parser) {
+  if(isRunningFromDartRun) {
+    executable = "dart run bin/whtail.dart"; //running from dart, not an executable
+  }
+  stdout.writeln("A tail utility that can monitor several files at once, and print the contents in different colors.");
+  stdout.writeln("Version: $appVersion");
+  stdout.writeln("");
+  stdout.writeln("Homepage: https://weatheredhiker.com/pages/versionutil.html");
+  stdout.writeln("Source  : https://github.com/abathur8bit/versionutil");
+  stdout.writeln("Issues  : https://github.com/abathur8bit/versionutil/issues");
+  stdout.writeln("");
+  stdout.writeln("Usage: $executable [options]");
+  stdout.writeln("");
+  stdout.writeln(parser.usage);
 }
 
 void createVersionFile(File versionFile, int version, int revision, int patch) {

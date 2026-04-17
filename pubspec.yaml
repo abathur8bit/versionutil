@@ -1,5 +1,5 @@
 name: versionutil
-description: A sample command-line application.
+description: Command line application that produces a version file using Semantic Versioning rules, and keeps track of a build number.
 version: 1.0.0
 # repository: https://github.com/my_org/my_repo
 

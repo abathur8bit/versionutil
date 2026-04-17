@@ -7,7 +7,7 @@
         "type": "version",
         "command": "versionutil",
         "params": [
-          "--in=real", "--out=lib\\versionutil_version.dart"
+          "--in=versionutil", "--out=lib/versionutil_version.dart"
         ]
       }
     },
@@ -17,7 +17,7 @@
         "type": "version",
         "command": "versionutil",
         "params": [
-          "-s"
+          "-s","--in=versionutil"
         ]
       }
     },
