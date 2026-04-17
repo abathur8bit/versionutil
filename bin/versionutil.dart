@@ -14,7 +14,7 @@ bool get isRunningFromDartRun => !isCompiledExecutable;
 String executable = 'versionutil';  //default to an executable
 
 void main(List<String> args) {
-  ArgParser parser = ArgParser()
+    ArgParser parser = ArgParser()
     ..addOption("lang",help:"lang=dart|java|cpp Output language (default: dart)")
     ..addOption("package",help: "package=<com.axorion> Package for java file")
     ..addOption("out",help: "out=<path> Output file path")
@@ -116,7 +116,7 @@ void _printUsage(ArgParser parser) {
   if(isRunningFromDartRun) {
     executable = "dart run bin/whtail.dart"; //running from dart, not an executable
   }
-  stdout.writeln("A tail utility that can monitor several files at once, and print the contents in different colors.");
+  stdout.writeln("a command-line utility for generating an application version file from JSON version data, using modified or strict SemVer numbering rules.");
   stdout.writeln("Version: $appVersion");
   stdout.writeln("");
   stdout.writeln("Homepage: https://weatheredhiker.com/pages/versionutil.html");

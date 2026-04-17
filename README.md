@@ -5,6 +5,52 @@ Homepage: https://weatheredhiker.com/pages/versionutil.html
 Source  : https://github.com/abathur8bit/versionutil
 Issues  : https://github.com/abathur8bit/versionutil/issues
 
+## Example usage
+
+The first step is to create your version config files and your first version file. For Dart, just call without any params:
+
+```bash
+versionutil --help
+versionutil
+```
+
+This generates the config files `version.json & version-build.json` and a Dart version file `lib/version.dart`
+`lib/version.dart`. Every time you run without params, it will update the appBuild number and build in `version-build.json`:
+
+`lib/version.dart`:
+
+```
+/// GENERATED FILE - DO NOT EDIT
+const String appVersion = "0.01.00+0001";
+const int appVersionNumber = 0;
+const int appRevision = 1;
+const int appPatch = 0;
+const int appBuild = 1;
+```
+
+From there, just include the version file in your application and print the `appVersion`:
+
+```dart
+import 'package:versionutil/versionutil_version.dart';
+
+void main(List<String> args) {
+    print("Version: $appVersion");
+}
+```
+
+Print the version without changing files. Handy if you want to know what the version is but don't want to change it:
+
+```bash
+versionutil --show
+```
+
+### Java
+Generate Java output, update pom.xml, and set a package:
+
+```bash
+versionutil --lang=java --package=com.example.app --out=src/main/java/com/example/app/Version.java --pom=pom.xml
+```
+
 ## Version format
 
 The generated version is:
@@ -87,48 +133,6 @@ When `preRelease` exists, the generated version includes both the prerelease and
 | `--verbose`, `-v`        | Print generation details                                                      |
 | `--help`, `-h`           | Show help                                                                     |
 
-## Typical usage
-
-```bash
-versionutil --help
-```
-
-Generate config files and a Dart version file:
-
-```bash
-versionutil
-```
-
-Print the resolved version without changing files:
-
-```bash
-versionutil --show
-```
-
-Use strict formatting:
-
-```bash
-versionutil --strict
-```
-
-Generate Java output, update pom.xml, and set a package:
-
-```bash
-versionutil --lang=java --package=com.example.app --out=src/main/java/com/example/app/Version.java --pom=pom.xml
-```
-
-Use a different input base name:
-
-```bash
-versionutil --in=versionutil
-```
-
-Create initial files with prerelease enabled:
-
-```bash
-versionutil --prerelease
-```
-
 ## Generated output
 
 ### Dart
@@ -169,4 +173,3 @@ public final class Version {
 #define APP_PATCH 1;
 #define APP_BUILD 102;
 ```
-
