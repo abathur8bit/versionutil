@@ -114,9 +114,9 @@ int incBuild(Map<String, dynamic> buildData,File buildFile,bool verbose) {
 
 void _printUsage(ArgParser parser) {
   if(isRunningFromDartRun) {
-    executable = "dart run bin/whtail.dart"; //running from dart, not an executable
+    executable = "dart run bin/versionutil.dart"; //running from dart, not an executable
   }
-  stdout.writeln("a command-line utility for generating an application version file from JSON version data, using modified or strict SemVer numbering rules.");
+  stdout.writeln("A command-line utility for generating an application version file using modified or strict SemVer numbering rules.");
   stdout.writeln("Version: $appVersion");
   stdout.writeln("");
   stdout.writeln("Homepage: https://weatheredhiker.com/pages/versionutil.html");
