@@ -1,5 +1,5 @@
 # Version Utility
-A command-line utility for generating an application version using modified or strict [SemVer](https://semver.org/) numbering rules. It updates a build number and writes a generated version file for Dart, Java, or C++.
+A command-line utility for generating an application version using modified or strict [SemVer](https://semver.org/) numbering rules. It updates a build number and writes a generated version file for Dart, Java, C++, or PHP.
 
 Homepage: https://weatheredhiker.com/pages/versionutil.html
 Source  : https://github.com/abathur8bit/versionutil
@@ -57,6 +57,13 @@ Generate Java output, update pom.xml, and set a package:
 
 ```bash
 versionutil --lang=java --package=com.example.app --out=src/main/java/com/example/app/Version.java --pom=pom.xml
+```
+
+### PHP
+Generate PHP output:
+
+```bash
+versionutil --lang=php --out=src/Version.php
 ```
 
 ## Version format
@@ -128,7 +135,7 @@ When `preRelease` exists, the generated version includes both the prerelease and
 
 | Option                   | Description                                                                    |
 |--------------------------|--------------------------------------------------------------------------------|
-| `--lang=dart/java/cpp`   | Output language, defaults to Dart                                              |
+| `--lang=dart/java/cpp/php` | Output language, defaults to Dart                                            |
 | `--package=<name>`       | Java package name for generated Java file                                      |
 | `--out=<path>`           | Output file path                                                               |
 | `--pom=<pom.xml>`        | Update the Maven `<version>` tag                                               |
@@ -180,4 +187,20 @@ public final class Version {
 #define APP_REVISION 9;
 #define APP_PATCH 1;
 #define APP_BUILD 102;
+```
+
+### PHP
+
+```php
+<?php
+// GENERATED FILE - DO NOT EDIT
+
+final class Version
+{
+    public const APP_VERSION = '1.09.01+0102';
+    public const APP_VERSIONNUMBER = 1;
+    public const APP_REVISION = 9;
+    public const APP_PATCH = 1;
+    public const APP_BUILD = 102;
+}
 ```

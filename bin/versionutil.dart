@@ -15,7 +15,7 @@ String executable = 'versionutil';  //default to an executable
 
 void main(List<String> args) {
     ArgParser parser = ArgParser()
-    ..addOption("lang",help:"lang=dart|java|cpp Output language (default: dart)")
+    ..addOption("lang",help:"lang=dart|java|cpp|php Output language (default: dart)")
     ..addOption("package",help: "package=<com.axorion> Package for java file")
     ..addOption("out",help: "out=<path> Output file path")
     ..addOption("pom",help: "pom=<pom.xml> Update pom.xml <version> tag")
@@ -216,10 +216,29 @@ public final class Version {
 #define APP_BUILD $build;
 ''';
 
+    case 'php':
+      final phpVersionString = _escapePhpString(versionString);
+      return '''<?php
+// GENERATED FILE - DO NOT EDIT
+
+final class Version
+{
+    public const APP_VERSION = '$phpVersionString';
+    public const APP_VERSIONNUMBER = $version;
+    public const APP_REVISION = $revision;
+    public const APP_PATCH = $patch;
+    public const APP_BUILD = $build;
+}
+''';
+
     default:
       stderr.writeln('Unsupported language: $lang');
       exit(2);
   }
+}
+
+String _escapePhpString(String value) {
+  return value.replaceAll(r'\', r'\\').replaceAll("'", r"\'");
 }
 
 String _defaultOutputPath(String lang) {
@@ -230,6 +249,8 @@ String _defaultOutputPath(String lang) {
       return 'Version.java';
     case 'cpp':
       return 'version.h';
+    case 'php':
+      return 'Version.php';
     default:
       return 'version.txt';
   }
